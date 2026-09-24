@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Vokabel-Grand-Prix</title>
-  <!-- WebRTC PeerJS für kostenlose Live-Verbindung zwischen Geräten -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     :root {
@@ -14,22 +13,14 @@
       --text: #f8fafc;
       --text-dim: #94a3b8;
       --accent: #e11d48;
-      --accent-hover: #be123c;
       --green: #16a34a;
       --yellow: #eab308;
       --blue: #0284c7;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      touch-action: manipulation;
-      -webkit-tap-highlight-color: transparent;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
@@ -37,32 +28,11 @@
       flex-direction: column;
       padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
       user-select: none;
-      -webkit-user-select: none;
     }
 
-    .view-container {
-      max-width: 1250px;
-      margin: 0 auto;
-      width: 100%;
-      flex: 1;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-
-    h1 {
-      color: #f43f5e;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 26px;
-      margin-bottom: 8px;
-    }
+    .view-container { max-width: 1250px; margin: 0 auto; width: 100%; flex: 1; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    h1 { color: #f43f5e; display: flex; align-items: center; gap: 12px; font-size: 26px; margin-bottom: 8px; }
 
     button {
       background: var(--accent);
@@ -78,15 +48,11 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      transition: transform 0.1s, background-color 0.15s;
     }
     button:active { transform: scale(0.97); }
     button.secondary { background: #334155; }
-    button.secondary:active { background: #1e293b; }
     button.success { background: var(--green); }
-    button.success:active { background: #15803d; }
     button.gold { background: #d97706; }
-    button.gold:active { background: #b45309; }
 
     input[type="text"], textarea {
       width: 100%;
@@ -99,260 +65,80 @@
       font-size: 18px;
       margin-bottom: 16px;
       outline: none;
-      -webkit-user-select: text;
       user-select: text;
     }
-    input[type="text"]:focus, textarea:focus {
-      border-color: var(--blue);
-      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25);
-    }
+    input[type="text"]:focus { border-color: var(--blue); }
 
-    .role-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-      margin-top: 25px;
-    }
-    .role-box {
-      background: #090d16;
-      border: 2px solid var(--border);
-      border-radius: 16px;
-      padding: 30px 20px;
-      text-align: center;
-      cursor: pointer;
-      transition: transform 0.15s, border-color 0.15s;
-    }
-    .role-box:active {
-      transform: scale(0.98);
-      border-color: var(--accent);
-    }
+    .role-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 25px; }
+    .role-box { background: #090d16; border: 2px solid var(--border); border-radius: 16px; padding: 30px 20px; text-align: center; cursor: pointer; }
+    .role-box:active { transform: scale(0.98); border-color: var(--accent); }
 
-    /* Beamer-Rennstrecke: Anonymisiert */
-    .track-wrapper {
-      background: #1b2333;
-      border: 3px solid #334155;
-      border-radius: 14px;
-      padding: 12px;
-      position: relative;
-      margin: 18px 0;
-      max-height: 520px;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .finish-gate {
-      position: absolute;
-      top: 0; bottom: 0; right: 40px;
-      width: 14px;
-      background: repeating-linear-gradient(0deg, #fff 0, #fff 12px, #000 12px, #000 24px);
-      z-index: 5;
-    }
-    .race-lane {
-      position: relative;
-      height: 48px;
-      border-bottom: 1px dashed #334155;
-      display: flex;
-      align-items: center;
-    }
-    .lane-car {
-      position: absolute;
-      left: 10px;
-      transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-      display: flex;
-      align-items: center;
-      z-index: 2;
-    }
+    .track-wrapper { background: #1b2333; border: 3px solid #334155; border-radius: 14px; padding: 12px; position: relative; margin: 18px 0; max-height: 520px; overflow-y: auto; }
+    .finish-gate { position: absolute; top: 0; bottom: 0; right: 40px; width: 14px; background: repeating-linear-gradient(0deg, #fff 0, #fff 12px, #000 12px, #000 24px); z-index: 5; }
+    .race-lane { position: relative; height: 48px; border-bottom: 1px dashed #334155; display: flex; align-items: center; }
+    .lane-car { position: absolute; left: 10px; transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; align-items: center; z-index: 2; }
     .lane-car svg { width: 56px; height: 30px; }
 
-    /* Eigene Spur am Schüler-iPad */
-    .student-track {
-      background: #182235;
-      border: 2px solid #2e3e58;
-      border-radius: 12px;
-      height: 60px;
-      position: relative;
-      margin: 15px 0 20px 0;
-      overflow: hidden;
-    }
-    .student-finish-line {
-      position: absolute;
-      right: 18px; top: 0; bottom: 0;
-      width: 8px;
-      background: repeating-linear-gradient(0deg, #fff 0, #fff 8px, #000 8px, #000 16px);
-    }
-    .student-car-runner {
-      position: absolute;
-      top: 14px;
-      left: 8px;
-      transition: left 0.5s ease-out;
-    }
+    .student-track { background: #182235; border: 2px solid #2e3e58; border-radius: 12px; height: 60px; position: relative; margin: 15px 0 20px 0; overflow: hidden; }
+    .student-finish-line { position: absolute; right: 18px; top: 0; bottom: 0; width: 8px; background: repeating-linear-gradient(0deg, #fff 0, #fff 8px, #000 8px, #000 16px); }
+    .student-car-runner { position: absolute; top: 14px; left: 8px; transition: left 0.5s ease-out; }
     .student-car-runner svg { width: 56px; height: 32px; }
 
-    .car-selector {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .car-card {
-      background: #090d16;
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
-    }
-    .car-card.selected {
-      border-color: var(--blue);
-      background: #0c233c;
-    }
+    .car-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+    .car-card { background: #090d16; border: 2px solid var(--border); border-radius: 12px; padding: 12px; text-align: center; cursor: pointer; }
+    .car-card.selected { border-color: var(--blue); background: #0c233c; }
     .car-card svg { width: 100%; height: 50px; }
 
-    /* Treppchen */
-    .podium-container {
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-      gap: 16px;
-      padding: 30px 10px 15px 10px;
-      min-height: 360px;
-    }
-    .podium-step {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 180px;
-    }
-    .podium-driver {
-      font-size: 18px;
-      font-weight: 800;
-      color: white;
-      margin-bottom: 8px;
-      text-align: center;
-    }
-    .podium-car-preview {
-      width: 80px;
-      height: 42px;
-      margin-bottom: 6px;
-    }
-    .podium-block {
-      width: 100%;
-      border-radius: 12px 12px 0 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-weight: 900;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-    }
+    .podium-container { display: flex; justify-content: center; align-items: flex-end; gap: 16px; padding: 30px 10px 15px 10px; min-height: 360px; }
+    .podium-step { display: flex; flex-direction: column; align-items: center; width: 180px; }
+    .podium-driver { font-size: 18px; font-weight: 800; color: white; margin-bottom: 8px; text-align: center; }
+    .podium-car-preview { width: 80px; height: 42px; margin-bottom: 6px; }
+    .podium-block { width: 100%; border-radius: 12px 12px 0 0; display: flex; justify-content: center; align-items: center; font-weight: 900; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
     .block-1 { height: 180px; background: linear-gradient(180deg, #f59e0b, #d97706); order: 2; font-size: 42px; color: #78350f; }
     .block-2 { height: 130px; background: linear-gradient(180deg, #94a3b8, #64748b); order: 1; font-size: 36px; color: #1e293b; }
     .block-3 { height: 95px; background: linear-gradient(180deg, #b45309, #78350f); order: 3; font-size: 30px; color: #fef3c7; }
 
-    /* Diagnose Modal (nur Lehrkraft) */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.85);
-      z-index: 1000;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      padding: 16px;
-    }
-    .modal-content {
-      background: #111827;
-      border: 2px solid var(--border);
-      border-radius: 16px;
-      width: 100%;
-      max-width: 1050px;
-      max-height: 85vh;
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-    }
-    .matrix-table-container {
-      overflow-x: auto;
-      margin-top: 15px;
-      flex: 1;
-      -webkit-overflow-scrolling: touch;
-    }
-    table.matrix {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-      text-align: center;
-    }
-    table.matrix th, table.matrix td {
-      border: 1px solid var(--border);
-      padding: 10px 8px;
-    }
-    table.matrix th {
-      background: #1f2937;
-      color: var(--text-dim);
-      font-weight: 600;
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }
-    .cell-status {
-      display: inline-block;
-      width: 26px;
-      height: 26px;
-      line-height: 26px;
-      border-radius: 6px;
-      font-weight: bold;
-    }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: none; justify-content: center; align-items: center; padding: 16px; }
+    .modal-content { background: #111827; border: 2px solid var(--border); border-radius: 16px; width: 100%; max-width: 1050px; max-height: 85vh; display: flex; flex-direction: column; padding: 20px; }
+    .matrix-table-container { overflow-x: auto; margin-top: 15px; flex: 1; }
+    table.matrix { width: 100%; border-collapse: collapse; font-size: 14px; text-align: center; }
+    table.matrix th, table.matrix td { border: 1px solid var(--border); padding: 10px 8px; }
+    table.matrix th { background: #1f2937; color: var(--text-dim); position: sticky; top: 0; z-index: 2; }
+    .cell-status { display: inline-block; width: 26px; height: 26px; line-height: 26px; border-radius: 6px; font-weight: bold; }
     .status-ok-1 { background: #15803d; color: white; }
     .status-ok-2 { background: #16a34a; color: white; }
     .status-ok-3 { background: #65a30d; color: white; }
     .status-fail { background: #b91c1c; color: white; }
     .status-pending { background: #374151; color: #9ca3af; }
 
-    /* Schüler Cockpit */
-    .student-cockpit {
-      max-width: 480px;
-      margin: 0 auto;
-      text-align: center;
-    }
-    .prompt-word {
-      font-size: 34px;
-      font-weight: 800;
-      color: #38bdf8;
-      margin: 15px 0;
-    }
-    .attempt-dots {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-    .dot {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #334155;
-      border: 2px solid #64748b;
-    }
+    .student-cockpit { max-width: 480px; margin: 0 auto; text-align: center; }
+    .prompt-word { font-size: 34px; font-weight: 800; color: #38bdf8; margin: 15px 0; }
+    .attempt-dots { display: flex; justify-content: center; gap: 12px; margin-bottom: 18px; }
+    .dot { width: 16px; height: 16px; border-radius: 50%; background: #334155; border: 2px solid #64748b; }
     .dot.lost { background: #dc2626; border-color: #ef4444; }
 
     .badge-code {
       font-family: monospace;
-      font-size: 36px;
+      font-size: 32px;
       color: #38bdf8;
-      letter-spacing: 4px;
+      letter-spacing: 3px;
       background: #070a12;
       display: inline-block;
-      padding: 6px 18px;
+      padding: 6px 16px;
       border-radius: 10px;
       border: 2px dashed #0284c7;
       margin: 8px 0;
     }
-    .feedback-msg {
-      font-size: 16px;
-      font-weight: 600;
-      min-height: 28px;
-      margin-top: 10px;
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #eab308;
+      margin-right: 6px;
     }
+    .status-indicator.online { background: #22c55e; }
+    .status-indicator.offline { background: #ef4444; }
   </style>
 </head>
 <body>
@@ -362,25 +148,21 @@
   <!-- ================= ROLLENAUSWAHL ================= -->
   <div id="viewMain" class="card">
     <h1>🏎️ Vokabel-Grand-Prix</h1>
-    <p style="color: var(--text-dim); margin-bottom: 20px;">Wähle deinen Modus für diese Unterrichtsstunde:</p>
+    <p style="color: var(--text-dim); margin-bottom: 20px;">Wähle deinen Modus:</p>
     
     <div class="role-grid">
       <div class="role-box" onclick="showHostSetup()">
         <h2 style="font-size: 24px; margin-bottom: 8px;">🖥️ Lehrkraft / Beamer</h2>
-        <p style="color: var(--text-dim); font-size: 15px; line-height: 1.4;">
-          Rennstrecke an den Beamer werfen (ohne Namen). Am Ende Siegerehrung mit Treppchen. Private Diagnose-Matrix nur für dich einsehbar.
-        </p>
+        <p style="color: var(--text-dim); font-size: 15px;">Rennstrecke am Beamer ohne Namen. Siegerehrung am Ende. Private Diagnose-Matrix.</p>
       </div>
       <div class="role-box" onclick="showStudentSetup()">
         <h2 style="font-size: 24px; margin-bottom: 8px;">📱 Schüler*in</h2>
-        <p style="color: var(--text-dim); font-size: 15px; line-height: 1.4;">
-          Mit Raum-Code beitreten, Sportwagen wählen und am eigenen Gerät Vokabeln eintippen.
-        </p>
+        <p style="color: var(--text-dim); font-size: 15px;">Mit Raum-Code beitreten, Auto wählen und Vokabeln eintippen.</p>
       </div>
     </div>
   </div>
 
-  <!-- ================= LEHRKRAFT / BEAMER ================= -->
+  <!-- ================= LEHRKRAFT ================= -->
   <div id="viewHost" class="card" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
       <h1>🏁 Live-Rennstrecke</h1>
@@ -394,8 +176,11 @@
 
     <div style="margin: 16px 0; display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
       <div>
-        <div style="color: var(--text-dim); font-size: 13px;">Code für Schüler*innen:</div>
-        <div class="badge-code" id="hostRoomCode">...</div>
+        <div style="color: var(--text-dim); font-size: 13px;">
+          <span class="status-indicator" id="hostStatusDot"></span>
+          <span id="hostStatusText">Verbinde mit Server...</span>
+        </div>
+        <div class="badge-code" id="hostRoomCode">BITTE WARTEN...</div>
       </div>
       <div>
         <div style="color: var(--text-dim); font-size: 13px;">Startaufstellung:</div>
@@ -417,7 +202,7 @@
       <button onclick="saveVocabList()">Vokabeln speichern</button>
     </div>
 
-    <!-- Anonyme Beamer-Strecke -->
+    <!-- Rennstrecke (Anonym auf dem Beamer) -->
     <div id="trackSection">
       <div class="track-wrapper" id="hostTrack">
         <div class="finish-gate"></div>
@@ -427,7 +212,7 @@
       </div>
     </div>
 
-    <!-- Treppchen-Ansicht -->
+    <!-- Treppchen -->
     <div id="podiumSection" style="display: none;">
       <h2 style="text-align: center; color: var(--yellow); font-size: 30px; margin: 15px 0;">🏆 Siegerehrung</h2>
       <div class="podium-container" id="podiumContent"></div>
@@ -437,7 +222,7 @@
     </div>
   </div>
 
-  <!-- ================= MODAL: PRIVATE DIAGNOSE ================= -->
+  <!-- ================= MODAL: DIAGNOSE ================= -->
   <div class="modal-overlay" id="matrixModal">
     <div class="modal-content">
       <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -447,14 +232,6 @@
         </div>
         <button class="secondary" onclick="closeTeacherMatrix()">✕ Schließen</button>
       </div>
-
-      <div style="display: flex; gap: 14px; font-size: 12px; margin-top: 12px;">
-        <span><span class="cell-status status-ok-1">1</span> 1. Versuch</span>
-        <span><span class="cell-status status-ok-2">2</span> 2. Versuch</span>
-        <span><span class="cell-status status-ok-3">3</span> 3. Versuch</span>
-        <span><span class="cell-status status-fail">✕</span> 3x Falsch</span>
-      </div>
-
       <div class="matrix-table-container">
         <table class="matrix">
           <thead>
@@ -470,31 +247,28 @@
     </div>
   </div>
 
-  <!-- ================= SCHÜLER COCKPIT ================= -->
+  <!-- ================= SCHÜLER ================= -->
   <div id="viewStudent" class="card student-cockpit" style="display: none;">
-    <!-- Schritt 1: Login & Wagenauswahl -->
     <div id="studentLoginArea">
       <h2>🏎️ Boxengasse</h2>
       <p style="color: var(--text-dim); margin-bottom: 20px;">Code vom Beamer und deinen Namen eingeben:</p>
       
-      <input type="text" id="inputRoomCode" placeholder="Raum-Code (z.B. GP428)" autocapitalize="characters" autocorrect="off" spellcheck="false">
+      <input type="text" id="inputRoomCode" placeholder="Code (z.B. 482)" autocapitalize="characters" autocorrect="off" spellcheck="false">
       <input type="text" id="inputStudentName" placeholder="Dein Vorname" autocapitalize="words" autocorrect="off" spellcheck="false">
 
       <h4 style="margin: 15px 0 10px 0; text-align: left;">Wähle deinen Sportwagen:</h4>
       <div class="car-selector" id="carSelector"></div>
 
-      <button style="width: 100%; min-height: 54px; font-size: 18px;" onclick="joinRace()">Startplatz sichern</button>
-      <div id="studentLoginError" class="feedback-msg" style="color: #ef4444;"></div>
+      <button style="width: 100%; min-height: 54px; font-size: 18px;" id="btnJoin" onclick="joinRace()">Startplatz sichern</button>
+      <div id="studentLoginError" style="color: #ef4444; font-weight: bold; margin-top: 12px;"></div>
     </div>
 
-    <!-- Schritt 2: Warten -->
     <div id="studentWaitingArea" style="display: none; padding: 45px 0;">
       <div style="font-size: 55px; margin-bottom: 15px;">🚦</div>
       <h2>Startaufstellung bereit!</h2>
-      <p style="color: var(--text-dim); margin-top: 10px;">Das Rennen startet gleich über den Beamer...</p>
+      <p style="color: var(--text-dim); margin-top: 10px;">Warte, bis die Lehrkraft das Rennen startet...</p>
     </div>
 
-    <!-- Schritt 3: Eigenes Rennen mit persönlicher Spur -->
     <div id="studentRaceArea" style="display: none;">
       <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--text-dim);">
         <span id="labelVocabProgress">Vokabel 1</span>
@@ -515,27 +289,17 @@
       </div>
 
       <form onsubmit="submitAnswer(event)">
-        <input type="text" 
-               id="studentAnswer" 
-               placeholder="Englisches Wort..." 
-               autocomplete="off" 
-               autocorrect="off" 
-               autocapitalize="none" 
-               spellcheck="false"
-               enterkeyhint="go"
-               inputmode="text">
+        <input type="text" id="studentAnswer" placeholder="Englisches Wort..." autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go">
         <button type="submit" style="width: 100%; min-height: 52px; font-size: 18px;">Gas geben (Prüfen)</button>
       </form>
-
-      <div class="feedback-msg" id="studentFeedback"></div>
+      <div id="studentFeedback" style="font-weight: 600; min-height: 28px; margin-top: 10px;"></div>
     </div>
 
-    <!-- Schritt 4: Ziel -->
     <div id="studentFinishArea" style="display: none; padding: 35px 0;">
       <div style="font-size: 65px; margin-bottom: 10px;">🏁</div>
       <h2>Ziellinie überquert!</h2>
       <p id="finishSummaryText" style="margin: 15px 0; color: #38bdf8; font-size: 20px; font-weight: bold;"></p>
-      <p style="color: var(--text-dim); font-size: 15px;">Super gefahren! Schau auf den Beamer für das Sieger-Treppchen.</p>
+      <p style="color: var(--text-dim);">Schau auf den Beamer für die Siegerehrung!</p>
     </div>
   </div>
 
@@ -543,53 +307,23 @@
 
 <script>
   const CARS = {
-    porsche: {
-      name: "Porsche 911 GT3",
-      color: "#0284c7",
-      svg: `<svg viewBox="0 0 100 45"><path d="M 5,30 Q 15,28 25,28 L 35,18 Q 50,12 70,18 L 85,26 Q 95,27 98,32 L 95,35 L 5,35 Z" fill="#0284c7"/><circle cx="25" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><circle cx="80" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><path d="M 40,20 Q 55,15 68,20 L 66,27 L 38,27 Z" fill="#bae6fd"/><rect x="85" y="16" width="6" height="12" fill="#0369a1"/></svg>`
-    },
-    lamborghini: {
-      name: "Lamborghini Huracán",
-      color: "#84cc16",
-      svg: `<svg viewBox="0 0 100 45"><polygon points="5,32 30,22 55,14 78,20 98,30 92,36 8,36" fill="#84cc16"/><circle cx="26" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><circle cx="78" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><polygon points="42,17 58,16 68,22 36,22" fill="#d9f99d"/></svg>`
-    },
-    ferrari: {
-      name: "Ferrari F8",
-      color: "#e11d48",
-      svg: `<svg viewBox="0 0 100 45"><path d="M 6,32 Q 22,25 38,21 Q 58,14 75,22 L 96,28 Q 98,33 93,36 L 8,36 Z" fill="#e11d48"/><circle cx="24" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><circle cx="78" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><path d="M 42,20 Q 56,16 70,21 L 68,26 L 38,26 Z" fill="#fecdd3"/></svg>`
-    },
-    corvette: {
-      name: "Corvette C8",
-      color: "#ea580c",
-      svg: `<svg viewBox="0 0 100 45"><polygon points="6,33 24,26 45,18 72,18 97,29 93,36 8,36" fill="#ea580c"/><circle cx="25" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><circle cx="80" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><polygon points="43,20 66,20 74,26 36,26" fill="#fed7aa"/></svg>`
-    }
+    porsche: { name: "Porsche 911 GT3", color: "#0284c7", svg: `<svg viewBox="0 0 100 45"><path d="M 5,30 Q 15,28 25,28 L 35,18 Q 50,12 70,18 L 85,26 Q 95,27 98,32 L 95,35 L 5,35 Z" fill="#0284c7"/><circle cx="25" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><circle cx="80" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><path d="M 40,20 Q 55,15 68,20 L 66,27 L 38,27 Z" fill="#bae6fd"/><rect x="85" y="16" width="6" height="12" fill="#0369a1"/></svg>` },
+    lamborghini: { name: "Lamborghini", color: "#84cc16", svg: `<svg viewBox="0 0 100 45"><polygon points="5,32 30,22 55,14 78,20 98,30 92,36 8,36" fill="#84cc16"/><circle cx="26" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><circle cx="78" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><polygon points="42,17 58,16 68,22 36,22" fill="#d9f99d"/></svg>` },
+    ferrari: { name: "Ferrari F8", color: "#e11d48", svg: `<svg viewBox="0 0 100 45"><path d="M 6,32 Q 22,25 38,21 Q 58,14 75,22 L 96,28 Q 98,33 93,36 L 8,36 Z" fill="#e11d48"/><circle cx="24" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><circle cx="78" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><path d="M 42,20 Q 56,16 70,21 L 68,26 L 38,26 Z" fill="#fecdd3"/></svg>` },
+    corvette: { name: "Corvette C8", color: "#ea580c", svg: `<svg viewBox="0 0 100 45"><polygon points="6,33 24,26 45,18 72,18 97,29 93,36 8,36" fill="#ea580c"/><circle cx="25" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><circle cx="80" cy="34" r="8" fill="#1e293b" stroke="#64748b" stroke-width="2"/><polygon points="43,20 66,20 74,26 36,26" fill="#fed7aa"/></svg>` }
   };
 
   let masterVocabulary = [
-    { de: "Schule", en: "school" },
-    { de: "Buch", en: "book" },
-    { de: "Freund / Freundin", en: "friend" },
-    { de: "Lehrer / Lehrerin", en: "teacher" },
-    { de: "Haus", en: "house" },
-    { de: "Apfel", en: "apple" },
-    { de: "Stadt", en: "city" },
-    { de: "Wasser", en: "water" },
-    { de: "Hund", en: "dog" },
-    { de: "Katze", en: "cat" },
-    { de: "Fenster", en: "window" },
-    { de: "Tisch", en: "table" },
-    { de: "Stift", en: "pen" },
-    { de: "Straße", en: "street" },
-    { de: "Familie", en: "family" },
-    { de: "Zeit", en: "time" },
-    { de: "Tür", en: "door" },
-    { de: "Garten", en: "garden" },
-    { de: "Zimmer", en: "room" },
-    { de: "Woche", en: "week" }
+    { de: "Schule", en: "school" }, { de: "Buch", en: "book" }, { de: "Freund / Freundin", en: "friend" }, { de: "Lehrer / Lehrerin", en: "teacher" },
+    { de: "Haus", en: "house" }, { de: "Apfel", en: "apple" }, { de: "Stadt", en: "city" }, { de: "Wasser", en: "water" },
+    { de: "Hund", en: "dog" }, { de: "Katze", en: "cat" }, { de: "Fenster", en: "window" }, { de: "Tisch", en: "table" },
+    { de: "Stift", en: "pen" }, { de: "Straße", en: "street" }, { de: "Familie", en: "family" }, { de: "Zeit", en: "time" },
+    { de: "Tür", en: "door" }, { de: "Garten", en: "garden" }, { de: "Zimmer", en: "room" }, { de: "Woche", en: "week" }
   ];
 
   let peer = null;
-  let roomCode = "";
+  let rawRoomCode = "";
+  let fullPeerId = "";
 
   let students = {};
   let studentOrder = [];
@@ -615,44 +349,48 @@
     renderCarSelection();
   }
 
+  // ================= LEHRKRAFT =================
   function initHost() {
-    roomCode = "GP" + Math.floor(100 + Math.random() * 900);
-    document.getElementById("hostRoomCode").textContent = roomCode;
     updateVocabEditorTextarea();
+    // 3-stellige Zufallszahl für einfachen Schülereingang
+    rawRoomCode = Math.floor(100 + Math.random() * 900).toString();
+    // Eindeutige ID im Peer-Netzwerk
+    fullPeerId = "vokabel-grandprix-room-" + rawRoomCode;
 
-    peer = new Peer(roomCode);
+    // Verbindung zu PeerJS mit Google STUN Servern (für bessere Firewall-Durchdringung)
+    peer = new Peer(fullPeerId, {
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      }
+    });
+
+    peer.on('open', (id) => {
+      // ERST HIER ist der Raum wirklich auf dem Server registriert!
+      document.getElementById("hostStatusDot").className = "status-indicator online";
+      document.getElementById("hostStatusText").textContent = "Online & Bereit";
+      document.getElementById("hostRoomCode").textContent = rawRoomCode;
+    });
 
     peer.on('connection', (conn) => {
-      if (Object.keys(students).length >= 30) {
-        conn.send({ type: 'ERROR', message: 'Raum voll.' });
-        conn.close();
-        return;
-      }
       conn.on('data', (data) => handleHostData(conn, data));
     });
 
     peer.on('error', (err) => {
-      if (err.type === 'unavailable-id') {
-        roomCode = "GP" + Math.floor(1000 + Math.random() * 9000);
-        document.getElementById("hostRoomCode").textContent = roomCode;
-        peer = new Peer(roomCode);
-      }
+      document.getElementById("hostStatusDot").className = "status-indicator offline";
+      document.getElementById("hostStatusText").textContent = "Schul-WLAN blockiert Server!";
+      document.getElementById("hostRoomCode").textContent = "FEHLER";
+      alert("Achtung: Das aktuelle WLAN blockiert die Verbindung zum Spielserver (" + err.type + "). Bitte teste kurz mit einem Handy-Hotspot.");
     });
   }
 
   function handleHostData(conn, data) {
     if (data.type === 'JOIN') {
       const studentId = conn.peer;
-      students[studentId] = {
-        id: studentId,
-        conn: conn,
-        name: data.name,
-        car: data.car,
-        score: 0,
-        results: {}
-      };
+      students[studentId] = { id: studentId, conn: conn, name: data.name, car: data.car, score: 0, results: {} };
       if (!studentOrder.includes(studentId)) studentOrder.push(studentId);
-
       updateBeamerLobby();
       conn.send({ type: 'JOINED' });
     }
@@ -660,7 +398,6 @@
     if (data.type === 'SUBMIT_RESULT') {
       const s = students[conn.peer];
       if (!s) return;
-
       s.results[data.deWord] = { correct: data.correct, attempts: data.attempts };
 
       if (data.correct) {
@@ -673,7 +410,6 @@
           document.getElementById("btnShowPodium").style.display = "inline-flex";
         }
       }
-
       updateMatrixTable();
     }
   }
@@ -689,41 +425,30 @@
     studentOrder.forEach(id => {
       const s = students[id];
       const carInfo = CARS[s.car] || CARS.porsche;
-
       const lane = document.createElement("div");
       lane.className = "race-lane";
-      lane.innerHTML = `
-        <div class="lane-car" id="beamerCar_${id}" style="left: 10px;">
-          ${carInfo.svg}
-        </div>
-      `;
+      lane.innerHTML = `<div class="lane-car" id="beamerCar_${id}" style="left: 10px;">${carInfo.svg}</div>`;
       lanesContainer.appendChild(lane);
     });
-
     initMatrixHeaders();
   }
 
   function updateBeamerCarPosition(studentId, score) {
     const carEl = document.getElementById(`beamerCar_${studentId}`);
     if (!carEl) return;
-
     const trackWidth = document.getElementById("hostTrack").clientWidth - 110;
-    const pct = Math.min(score / 10, 1);
-    const newLeft = 10 + (trackWidth * pct);
-
+    const newLeft = 10 + (trackWidth * Math.min(score / 10, 1));
     carEl.style.left = `${newLeft}px`;
   }
 
   function startRace() {
     document.getElementById("finishCounterBox").style.display = "block";
     document.getElementById("totalRacers").textContent = Object.keys(students).length;
-
     const payload = {
       type: 'START_RACE',
       initialWords: masterVocabulary.slice(0, 10),
       reserveWords: masterVocabulary.slice(10, 20)
     };
-
     Object.values(students).forEach(s => s.conn.send(payload));
     document.getElementById("btnStartRace").style.display = "none";
   }
@@ -731,45 +456,27 @@
   function showPodium() {
     document.getElementById("trackSection").style.display = "none";
     document.getElementById("podiumSection").style.display = "block";
-
     const podium = document.getElementById("podiumContent");
     podium.innerHTML = "";
 
-    const r1 = finishRankings[0];
-    const r2 = finishRankings[1];
-    const r3 = finishRankings[2];
-
-    if (r2) podium.appendChild(createPodiumStep(r2, "block-2", "🥈 2."));
-    else podium.appendChild(createEmptyStep("block-2", "2."));
-
-    if (r1) podium.appendChild(createPodiumStep(r1, "block-1", "🥇 1."));
-    else podium.appendChild(createEmptyStep("block-1", "1."));
-
-    if (r3) podium.appendChild(createPodiumStep(r3, "block-3", "🥉 3."));
-    else podium.appendChild(createEmptyStep("block-3", "3."));
+    const r1 = finishRankings[0], r2 = finishRankings[1], r3 = finishRankings[2];
+    podium.appendChild(r2 ? createPodiumStep(r2, "block-2", "🥈 2.") : createEmptyStep("block-2", "2."));
+    podium.appendChild(r1 ? createPodiumStep(r1, "block-1", "🥇 1.") : createEmptyStep("block-1", "1."));
+    podium.appendChild(r3 ? createPodiumStep(r3, "block-3", "🥉 3.") : createEmptyStep("block-3", "3."));
   }
 
   function createPodiumStep(racer, blockClass, medal) {
     const carInfo = CARS[racer.car] || CARS.porsche;
     const step = document.createElement("div");
     step.className = "podium-step";
-    step.innerHTML = `
-      <div class="podium-driver">${racer.name}</div>
-      <div class="podium-car-preview">${carInfo.svg}</div>
-      <div class="podium-block ${blockClass}">
-        <div>${medal}</div>
-      </div>
-    `;
+    step.innerHTML = `<div class="podium-driver">${racer.name}</div><div class="podium-car-preview">${carInfo.svg}</div><div class="podium-block ${blockClass}"><div>${medal}</div></div>`;
     return step;
   }
 
   function createEmptyStep(blockClass, num) {
     const step = document.createElement("div");
     step.className = "podium-step";
-    step.innerHTML = `
-      <div class="podium-driver" style="color: var(--text-dim);">-</div>
-      <div class="podium-block ${blockClass}" style="opacity: 0.4;">${num}</div>
-    `;
+    step.innerHTML = `<div class="podium-driver" style="color: var(--text-dim);">-</div><div class="podium-block ${blockClass}" style="opacity: 0.4;">${num}</div>`;
     return step;
   }
 
@@ -778,57 +485,35 @@
     document.getElementById("trackSection").style.display = "block";
   }
 
-  function openTeacherMatrix() {
-    document.getElementById("matrixModal").style.display = "flex";
-  }
-  function closeTeacherMatrix() {
-    document.getElementById("matrixModal").style.display = "none";
-  }
+  function openTeacherMatrix() { document.getElementById("matrixModal").style.display = "flex"; }
+  function closeTeacherMatrix() { document.getElementById("matrixModal").style.display = "none"; }
 
   function initMatrixHeaders() {
     const theadRow = document.getElementById("matrixHeader");
-    theadRow.innerHTML = `
-      <th style="min-width: 140px; text-align: left;">Fahrer*in</th>
-      <th style="min-width: 110px;">Wagen</th>
-      <th style="min-width: 80px;">Punkte</th>
-    `;
-
+    theadRow.innerHTML = `<th style="min-width: 140px; text-align: left;">Fahrer*in</th><th>Wagen</th><th>Punkte</th>`;
     masterVocabulary.forEach((v, i) => {
       const th = document.createElement("th");
       th.style.minWidth = "80px";
       th.innerHTML = `${v.de}<br><span style="font-size:10px; color:#64748b;">(${i < 10 ? 'Start' : 'Res.'})</span>`;
       theadRow.appendChild(th);
     });
-
     updateMatrixTable();
   }
 
   function updateMatrixTable() {
     const tbody = document.getElementById("matrixBody");
     tbody.innerHTML = "";
-
     studentOrder.forEach(id => {
       const s = students[id];
       const carInfo = CARS[s.car] || CARS.porsche;
-
       const row = document.createElement("tr");
-      let html = `
-        <td style="font-weight: 700; text-align: left;">${s.name}</td>
-        <td style="color:${carInfo.color}; font-size:12px;">${carInfo.name}</td>
-        <td style="font-weight: bold; color: ${s.score >= 10 ? '#22c55e' : '#fff'};">${s.score} / 10</td>
-      `;
-
+      let html = `<td style="font-weight: 700; text-align: left;">${s.name}</td><td style="color:${carInfo.color}; font-size:12px;">${carInfo.name}</td><td style="font-weight: bold; color: ${s.score >= 10 ? '#22c55e' : '#fff'};">${s.score} / 10</td>`;
       masterVocabulary.forEach(v => {
         const res = s.results[v.de];
-        if (!res) {
-          html += `<td><span class="cell-status status-pending">-</span></td>`;
-        } else if (res.correct) {
-          html += `<td><span class="cell-status status-ok-${res.attempts}">${res.attempts}</span></td>`;
-        } else {
-          html += `<td><span class="cell-status status-fail">✕</span></td>`;
-        }
+        if (!res) html += `<td><span class="cell-status status-pending">-</span></td>`;
+        else if (res.correct) html += `<td><span class="cell-status status-ok-${res.attempts}">${res.attempts}</span></td>`;
+        else html += `<td><span class="cell-status status-fail">✕</span></td>`;
       });
-
       row.innerHTML = html;
       tbody.appendChild(row);
     });
@@ -850,22 +535,17 @@
       const p = line.split("=");
       if (p.length === 2 && p[0].trim() && p[1].trim()) parsed.push({ de: p[0].trim(), en: p[1].trim() });
     });
-
-    if (parsed.length < 20) {
-      alert(`Bitte genau 20 Paare eingeben (aktuell: ${parsed.length}).`);
-      return;
-    }
-
+    if (parsed.length < 20) { alert(`Bitte genau 20 Paare eingeben (aktuell: ${parsed.length}).`); return; }
     masterVocabulary = parsed.slice(0, 20);
     toggleVocabEditor();
     initMatrixHeaders();
     alert("20 Vokabeln gespeichert!");
   }
 
+  // ================= SCHÜLER =================
   function renderCarSelection() {
     const container = document.getElementById("carSelector");
     container.innerHTML = "";
-
     Object.keys(CARS).forEach(key => {
       const car = CARS[key];
       const card = document.createElement("div");
@@ -875,39 +555,66 @@
         card.classList.add("selected");
         selectedCarKey = key;
       };
-      card.innerHTML = `
-        ${car.svg}
-        <div style="font-size: 13px; font-weight: bold; margin-top: 6px;">${car.name}</div>
-      `;
+      card.innerHTML = `${car.svg}<div style="font-size: 13px; font-weight: bold; margin-top: 6px;">${car.name}</div>`;
       container.appendChild(card);
     });
   }
 
   function joinRace() {
-    const code = document.getElementById("inputRoomCode").value.trim().toUpperCase();
+    let code = document.getElementById("inputRoomCode").value.trim().toUpperCase();
     const name = document.getElementById("inputStudentName").value.trim();
     const errDiv = document.getElementById("studentLoginError");
+    const btn = document.getElementById("btnJoin");
 
     if (!code || !name) {
       errDiv.textContent = "Bitte Code und Namen eingeben.";
       return;
     }
 
-    errDiv.textContent = "Verbinde mit Rennstrecke...";
-    peer = new Peer();
+    // Präfix ergänzen falls Schüler nur die Zahl eingetippt hat
+    if (!code.startsWith("vokabel-grandprix-room-")) {
+      code = "vokabel-grandprix-room-" + code;
+    }
+
+    errDiv.textContent = "Verbinde mit Server...";
+    btn.disabled = true;
+
+    peer = new Peer({
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      }
+    });
 
     peer.on('open', () => {
-      hostConn = peer.connect(code);
+      hostConn = peer.connect(code, { reliable: true });
+
+      // Sicherheits-Timeout nach 5 Sekunden
+      const timeoutTimer = setTimeout(() => {
+        if (!hostConn.open) {
+          errDiv.textContent = "Raum nicht gefunden! Steht am Beamer wirklich 'Online & Bereit'?";
+          btn.disabled = false;
+        }
+      }, 5000);
 
       hostConn.on('open', () => {
+        clearTimeout(timeoutTimer);
         hostConn.send({ type: 'JOIN', name: name, car: selectedCarKey });
       });
 
       hostConn.on('data', (data) => handleStudentData(data));
-      hostConn.on('error', () => { errDiv.textContent = "Code nicht gefunden."; });
     });
 
-    peer.on('error', (err) => { errDiv.textContent = "Verbindungsfehler: " + err.type; });
+    peer.on('error', (err) => {
+      btn.disabled = false;
+      if (err.type === 'peer-unavailable') {
+        errDiv.textContent = "Raum-Code existiert nicht. Bitte Zahl am Beamer prüfen!";
+      } else {
+        errDiv.textContent = "Netzwerk-Fehler (" + err.type + "). Blockiert das Schul-WLAN?";
+      }
+    });
   }
 
   function handleStudentData(data) {
@@ -919,13 +626,10 @@
     if (data.type === 'START_RACE') {
       studentQueue = [...data.initialWords];
       reservePool = [...data.reserveWords];
-      currentIdx = 0;
-      currentAttempts = 0;
-      correctCount = 0;
+      currentIdx = 0; currentAttempts = 0; correctCount = 0;
 
       document.getElementById("myCarRunner").innerHTML = CARS[selectedCarKey].svg;
       updateStudentCarPosition(0);
-
       document.getElementById("studentWaitingArea").style.display = "none";
       document.getElementById("studentRaceArea").style.display = "block";
       loadStudentWord();
@@ -933,18 +637,12 @@
   }
 
   function loadStudentWord() {
-    if (currentIdx >= studentQueue.length || correctCount >= 10) {
-      finishStudentGame();
-      return;
-    }
-
+    if (currentIdx >= studentQueue.length || correctCount >= 10) { finishStudentGame(); return; }
     currentAttempts = 0;
     updateDots();
-
     const curr = studentQueue[currentIdx];
     document.getElementById("studentGermanWord").textContent = curr.de;
     document.getElementById("labelVocabProgress").textContent = `Vokabel ${currentIdx + 1}`;
-    
     const ansInput = document.getElementById("studentAnswer");
     ansInput.value = "";
     document.getElementById("studentFeedback").textContent = "";
@@ -974,21 +672,10 @@
       correctCount++;
       feedback.style.color = "var(--green)";
       feedback.textContent = "Richtig! Vollgas!";
-
-      hostConn.send({
-        type: 'SUBMIT_RESULT',
-        deWord: currentWord.de,
-        correct: true,
-        attempts: currentAttempts
-      });
-
+      hostConn.send({ type: 'SUBMIT_RESULT', deWord: currentWord.de, correct: true, attempts: currentAttempts });
       updateStudentCarPosition(correctCount);
 
-      setTimeout(() => {
-        currentIdx++;
-        loadStudentWord();
-      }, 500);
-
+      setTimeout(() => { currentIdx++; loadStudentWord(); }, 500);
     } else {
       if (currentAttempts < 3) {
         feedback.style.color = "var(--yellow)";
@@ -997,31 +684,17 @@
       } else {
         feedback.style.color = "#ef4444";
         feedback.textContent = "3 Fehlversuche. Nächste Vokabel!";
+        hostConn.send({ type: 'SUBMIT_RESULT', deWord: currentWord.de, correct: false, attempts: 3 });
 
-        hostConn.send({
-          type: 'SUBMIT_RESULT',
-          deWord: currentWord.de,
-          correct: false,
-          attempts: 3
-        });
-
-        if (reservePool.length > 0) {
-          studentQueue.push(reservePool.shift());
-        }
-
-        setTimeout(() => {
-          currentIdx++;
-          loadStudentWord();
-        }, 1000);
+        if (reservePool.length > 0) studentQueue.push(reservePool.shift());
+        setTimeout(() => { currentIdx++; loadStudentWord(); }, 1000);
       }
     }
   }
 
   function updateStudentCarPosition(score) {
     const trackWidth = document.getElementById("studentTrackWrapper").clientWidth - 76;
-    const pct = Math.min(score / 10, 1);
-    const newLeft = 8 + (trackWidth * pct);
-
+    const newLeft = 8 + (trackWidth * Math.min(score / 10, 1));
     document.getElementById("myCarRunner").style.left = `${newLeft}px`;
     document.getElementById("labelScore").textContent = `${score} / 10 im Ziel`;
   }
@@ -1029,8 +702,7 @@
   function finishStudentGame() {
     document.getElementById("studentRaceArea").style.display = "none";
     document.getElementById("studentFinishArea").style.display = "block";
-    document.getElementById("finishSummaryText").textContent =
-      `${correctCount} von 10 Vokabeln geschafft!`;
+    document.getElementById("finishSummaryText").textContent = `${correctCount} von 10 Vokabeln geschafft!`;
   }
 </script>
 
