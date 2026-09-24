@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Vokabel-Grand-Prix</title>
-  <!-- Extrem stabiler WebSocket-Nachrichtendienst (funktioniert in jedem Schul-WLAN) -->
-  <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
+  <!-- Zuverlässige PeerJS-Bibliothek über jsDelivr CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     :root {
       --bg: #090d16;
@@ -74,6 +74,19 @@
     .role-box { background: #090d16; border: 2px solid var(--border); border-radius: 16px; padding: 30px 20px; text-align: center; cursor: pointer; }
     .role-box:active { transform: scale(0.98); border-color: var(--accent); }
 
+    /* Live Status Box für Diagnose */
+    .status-log {
+      background: #070a12;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #38bdf8;
+      margin: 10px 0;
+      text-align: left;
+    }
+
     .track-wrapper { background: #1b2333; border: 3px solid #334155; border-radius: 14px; padding: 12px; position: relative; margin: 18px 0; max-height: 520px; overflow-y: auto; }
     .finish-gate { position: absolute; top: 0; bottom: 0; right: 40px; width: 14px; background: repeating-linear-gradient(0deg, #fff 0, #fff 12px, #000 12px, #000 24px); z-index: 5; }
     .race-lane { position: relative; height: 48px; border-bottom: 1px dashed #334155; display: flex; align-items: center; }
@@ -120,12 +133,12 @@
 
     .badge-code {
       font-family: monospace;
-      font-size: 34px;
+      font-size: 38px;
       color: #38bdf8;
       letter-spacing: 4px;
       background: #070a12;
       display: inline-block;
-      padding: 6px 18px;
+      padding: 6px 20px;
       border-radius: 10px;
       border: 2px dashed #0284c7;
       margin: 8px 0;
@@ -165,18 +178,28 @@
       </div>
     </div>
 
-    <div style="margin: 16px 0; display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+    <!-- Raumcode & QR-Code Bereich -->
+    <div style="margin: 16px 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; background: #080c14; padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
       <div>
-        <div style="color: var(--text-dim); font-size: 13px;" id="hostStatusLabel">Verbinde mit Server...</div>
-        <div class="badge-code" id="hostRoomCode">....</div>
+        <div style="color: var(--text-dim); font-size: 14px;">Raum-Code für Schüler*innen:</div>
+        <div class="badge-code" id="hostRoomCode">BITTE WARTEN...</div>
+        <div class="status-log" id="hostStatusLog">Verbinde mit Vermittlungsserver...</div>
       </div>
+      
+      <!-- Automatischer QR-Code zum Scannen mit dem Schüler-iPad -->
+      <div style="text-align: center;">
+        <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 4px;">Kamera-Direktbeitritt:</div>
+        <img id="qrCodeImg" style="width: 100px; height: 100px; border-radius: 8px; background: white; padding: 4px;" alt="QR-Code">
+      </div>
+
       <div>
-        <div style="color: var(--text-dim); font-size: 13px;">Startaufstellung:</div>
-        <div style="font-size: 22px; font-weight: bold;"><span id="connectedCount">0</span> Rennwagen bereit</div>
+        <div style="color: var(--text-dim); font-size: 14px;">Startaufstellung:</div>
+        <div style="font-size: 26px; font-weight: bold;"><span id="connectedCount">0</span> Rennwagen bereit</div>
       </div>
+
       <div id="finishCounterBox" style="display: none;">
-        <div style="color: var(--text-dim); font-size: 13px;">Im Ziel:</div>
-        <div style="font-size: 22px; font-weight: bold; color: var(--yellow);"><span id="finishedCount">0</span> / <span id="totalRacers">0</span></div>
+        <div style="color: var(--text-dim); font-size: 14px;">Im Ziel:</div>
+        <div style="font-size: 26px; font-weight: bold; color: var(--yellow);"><span id="finishedCount">0</span> / <span id="totalRacers">0</span></div>
       </div>
     </div>
 
@@ -190,7 +213,7 @@
       <button onclick="saveVocabList()">Vokabeln speichern</button>
     </div>
 
-    <!-- Rennstrecke (Anonym) -->
+    <!-- Rennstrecke (Anonym auf dem Beamer) -->
     <div id="trackSection">
       <div class="track-wrapper" id="hostTrack">
         <div class="finish-gate"></div>
@@ -248,7 +271,7 @@
       <div class="car-selector" id="carSelector"></div>
 
       <button style="width: 100%; min-height: 54px; font-size: 18px;" id="btnJoin" onclick="joinRace()">Startplatz sichern</button>
-      <div id="studentLoginError" style="color: #ef4444; font-weight: bold; margin-top: 12px;"></div>
+      <div class="status-log" id="studentStatusLog" style="display: none; margin-top: 15px;"></div>
     </div>
 
     <div id="studentWaitingArea" style="display: none; padding: 45px 0;">
@@ -309,26 +332,32 @@
     { de: "Tür", en: "door" }, { de: "Garten", en: "garden" }, { de: "Zimmer", en: "room" }, { de: "Woche", en: "week" }
   ];
 
-  // MQTT Client
-  let mqttClient = null;
-  let roomCode = "";
-  let topicToHost = "";
-  let topicToStudents = "";
+  const ID_PREFIX = "vk-gp26-";
 
-  // Host State
+  let peer = null;
+  let roomCode = "";
+
   let students = {};
   let studentOrder = [];
   let finishRankings = [];
 
-  // Student State
-  let myStudentId = "s_" + Math.random().toString(36).substr(2, 8);
-  let myName = "";
+  let hostConn = null;
   let selectedCarKey = "porsche";
   let studentQueue = [];
   let reservePool = [];
   let currentIdx = 0;
   let currentAttempts = 0;
   let correctCount = 0;
+
+  // Prüfen, ob Raum-Code in URL übergeben wurde (z.B. per QR-Code)
+  window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const urlRoom = params.get('raum');
+    if (urlRoom) {
+      showStudentSetup();
+      document.getElementById("inputRoomCode").value = urlRoom;
+    }
+  });
 
   function showHostSetup() {
     document.getElementById("viewMain").style.display = "none";
@@ -345,48 +374,69 @@
   // ================= LEHRKRAFT =================
   function initHost() {
     updateVocabEditorTextarea();
-    // 4-stelliger Zahlencode
     roomCode = Math.floor(1000 + Math.random() * 9000).toString();
-    topicToHost = `vokabelgrandprix/${roomCode}/host`;
-    topicToStudents = `vokabelgrandprix/${roomCode}/students`;
+    const fullPeerId = ID_PREFIX + roomCode;
 
-    // Verbindung über weltweiten, sicheren HiveMQ WebSocket Broker
-    mqttClient = mqtt.connect("wss://broker.hivemq.com:8884/mqtt");
+    const logEl = document.getElementById("hostStatusLog");
+    logEl.innerHTML = "Verbinde mit Vermittlungsserver...";
 
-    mqttClient.on("connect", () => {
-      document.getElementById("hostStatusLabel").textContent = "Online & Bereit (Code für Schüler):";
-      document.getElementById("hostRoomCode").textContent = roomCode;
-      mqttClient.subscribe(topicToHost);
+    // QR-Code für Schüler-Beitritt generieren
+    const joinUrl = window.location.origin + window.location.pathname + "?raum=" + roomCode;
+    document.getElementById("qrCodeImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(joinUrl)}`;
+
+    peer = new Peer(fullPeerId, {
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      }
     });
 
-    mqttClient.on("message", (topic, message) => {
-      try {
-        const data = JSON.parse(message.toString());
-        handleHostData(data);
-      } catch (e) { console.error(e); }
+    peer.on('open', (id) => {
+      document.getElementById("hostRoomCode").textContent = roomCode;
+      logEl.innerHTML = `<span style="color: #22c55e;">● Online & Bereit!</span> Raum-ID: ${roomCode}`;
+    });
+
+    peer.on('connection', (conn) => {
+      conn.on('open', () => {
+        // Keepalive Ping alle 10 Sekunden
+        const pingInterval = setInterval(() => {
+          if (conn.open) conn.send({ type: 'PING' });
+          else clearInterval(pingInterval);
+        }, 10000);
+      });
+
+      conn.on('data', (data) => handleHostData(conn, data));
+    });
+
+    peer.on('error', (err) => {
+      if (err.type === 'unavailable-id') {
+        // Falls Zahl zufällig belegt, neue probieren
+        initHost();
+      } else {
+        logEl.innerHTML = `<span style="color: #ef4444;">Fehler: ${err.type}</span>. Bitte Seite neu laden.`;
+      }
     });
   }
 
-  function handleHostData(data) {
+  function handleHostData(conn, data) {
     if (data.type === 'JOIN') {
-      const sId = data.studentId;
-      if (!students[sId]) {
-        students[sId] = { id: sId, name: data.name, car: data.car, score: 0, results: {} };
-        studentOrder.push(sId);
-        updateBeamerLobby();
-      }
-      // Bestätigung an den Schüler senden
-      mqttClient.publish(topicToStudents, JSON.stringify({ type: 'JOIN_ACK', targetId: sId }));
+      const studentId = conn.peer;
+      students[studentId] = { id: studentId, conn: conn, name: data.name, car: data.car, score: 0, results: {} };
+      if (!studentOrder.includes(studentId)) studentOrder.push(studentId);
+      updateBeamerLobby();
+      conn.send({ type: 'JOINED' });
     }
 
     if (data.type === 'SUBMIT_RESULT') {
-      const s = students[data.studentId];
+      const s = students[conn.peer];
       if (!s) return;
       s.results[data.deWord] = { correct: data.correct, attempts: data.attempts };
 
       if (data.correct) {
         s.score += 1;
-        updateBeamerCarPosition(data.studentId, s.score);
+        updateBeamerCarPosition(conn.peer, s.score);
 
         if (s.score === 10 && !finishRankings.some(r => r.id === s.id)) {
           finishRankings.push({ id: s.id, name: s.name, car: s.car });
@@ -428,12 +478,12 @@
   function startRace() {
     document.getElementById("finishCounterBox").style.display = "block";
     document.getElementById("totalRacers").textContent = Object.keys(students).length;
-    
-    mqttClient.publish(topicToStudents, JSON.stringify({
+    const payload = {
       type: 'START_RACE',
       initialWords: masterVocabulary.slice(0, 10),
       reserveWords: masterVocabulary.slice(10, 20)
-    }));
+    };
+    Object.values(students).forEach(s => s.conn.send(payload));
     document.getElementById("btnStartRace").style.display = "none";
   }
 
@@ -544,68 +594,90 @@
     });
   }
 
+  function updateStudentLog(msg, isError = false) {
+    const log = document.getElementById("studentStatusLog");
+    log.style.display = "block";
+    log.innerHTML = isError ? `<span style="color: #ef4444;">${msg}</span>` : msg;
+  }
+
   function joinRace() {
-    const code = document.getElementById("inputRoomCode").value.trim();
-    myName = document.getElementById("inputStudentName").value.trim();
-    const errDiv = document.getElementById("studentLoginError");
+    const rawInput = document.getElementById("inputRoomCode").value.trim().replace(/\s+/g, '');
+    const name = document.getElementById("inputStudentName").value.trim();
     const btn = document.getElementById("btnJoin");
 
-    if (!code || !myName) {
-      errDiv.textContent = "Bitte Code und Namen eingeben.";
+    if (!rawInput || !name) {
+      updateStudentLog("Bitte 4-stelligen Code und deinen Namen eingeben.", true);
       return;
     }
 
-    errDiv.textContent = "Verbinde mit Rennstrecke...";
+    // Automatisch den einheitlichen internen Präfix bilden
+    const targetPeerId = ID_PREFIX + rawInput;
+
     btn.disabled = true;
+    updateStudentLog("1. Verbinde mit Server...");
 
-    roomCode = code;
-    topicToHost = `vokabelgrandprix/${roomCode}/host`;
-    topicToStudents = `vokabelgrandprix/${roomCode}/students`;
-
-    mqttClient = mqtt.connect("wss://broker.hivemq.com:8884/mqtt");
-
-    mqttClient.on("connect", () => {
-      mqttClient.subscribe(topicToStudents);
-      
-      // Anmelden
-      mqttClient.publish(topicToHost, JSON.stringify({
-        type: 'JOIN',
-        studentId: myStudentId,
-        name: myName,
-        car: selectedCarKey
-      }));
-    });
-
-    mqttClient.on("message", (topic, message) => {
-      try {
-        const data = JSON.parse(message.toString());
-        
-        if (data.type === 'JOIN_ACK' && data.targetId === myStudentId) {
-          document.getElementById("studentLoginArea").style.display = "none";
-          document.getElementById("studentWaitingArea").style.display = "block";
-        }
-
-        if (data.type === 'START_RACE') {
-          studentQueue = [...data.initialWords];
-          reservePool = [...data.reserveWords];
-          currentIdx = 0; currentAttempts = 0; correctCount = 0;
-
-          document.getElementById("myCarRunner").innerHTML = CARS[selectedCarKey].svg;
-          updateStudentCarPosition(0);
-          document.getElementById("studentWaitingArea").style.display = "none";
-          document.getElementById("studentRaceArea").style.display = "block";
-          loadStudentWord();
-        }
-      } catch (e) { console.error(e); }
-    });
-
-    // Timeout-Prüfung nach 5 Sekunden
-    setTimeout(() => {
-      if (document.getElementById("studentWaitingArea").style.display !== "block") {
-        btn.disabled = false;
-        errDiv.textContent = "Code nicht gefunden! Läuft das Lehrer-iPad?";
+    peer = new Peer({
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
       }
-    }, 5000);
+    });
+
+    peer.on('open', (myId) => {
+      updateStudentLog(`2. Suche Lehrer-Raum <b>${rawInput}</b>...`);
+
+      hostConn = peer.connect(targetPeerId, { reliable: true });
+
+      // Nach 7 Sekunden prüfen, ob Verbindung geklappt hat
+      const timeout = setTimeout(() => {
+        if (!hostConn || !hostConn.open) {
+          btn.disabled = false;
+          updateStudentLog(`Raum ${rawInput} nicht gefunden! Läuft die Lehrkraft-Seite auf dem Laptop?`, true);
+        }
+      }, 7000);
+
+      hostConn.on('open', () => {
+        clearTimeout(timeout);
+        updateStudentLog("3. Raum gefunden! Sichere Startplatz...");
+        hostConn.send({ type: 'JOIN', name: name, car: selectedCarKey });
+      });
+
+      hostConn.on('data', (data) => handleStudentData(data));
+
+      hostConn.on('close', () => {
+        updateStudentLog("Verbindung zum Lehrer unterbrochen.", true);
+      });
+    });
+
+    peer.on('error', (err) => {
+      btn.disabled = false;
+      if (err.type === 'peer-unavailable') {
+        updateStudentLog(`Der Raum "${rawInput}" existiert nicht. Bitte die 4 Zahlen vom Laptop genau prüfen!`, true);
+      } else {
+        updateStudentLog(`Verbindungsfehler (${err.type}).`, true);
+      }
+    });
+  }
+
+  function handleStudentData(data) {
+    if (data.type === 'JOINED') {
+      document.getElementById("studentLoginArea").style.display = "none";
+      document.getElementById("studentWaitingArea").style.display = "block";
+    }
+
+    if (data.type === 'START_RACE') {
+      studentQueue = [...data.initialWords];
+      reservePool = [...data.reserveWords];
+      currentIdx = 0; currentAttempts = 0; correctCount = 0;
+
+      document.getElementById("myCarRunner").innerHTML = CARS[selectedCarKey].svg;
+      updateStudentCarPosition(0);
+      document.getElementById("studentWaitingArea").style.display = "none";
+      document.getElementById("studentRaceArea").style.display = "block";
+      loadStudentWord();
+    }
   }
 
   function loadStudentWord() {
@@ -644,16 +716,9 @@
       correctCount++;
       feedback.style.color = "var(--green)";
       feedback.textContent = "Richtig! Vollgas!";
-      
-      mqttClient.publish(topicToHost, JSON.stringify({
-        type: 'SUBMIT_RESULT',
-        studentId: myStudentId,
-        deWord: currentWord.de,
-        correct: true,
-        attempts: currentAttempts
-      }));
-
+      hostConn.send({ type: 'SUBMIT_RESULT', deWord: currentWord.de, correct: true, attempts: currentAttempts });
       updateStudentCarPosition(correctCount);
+
       setTimeout(() => { currentIdx++; loadStudentWord(); }, 500);
     } else {
       if (currentAttempts < 3) {
@@ -663,14 +728,7 @@
       } else {
         feedback.style.color = "#ef4444";
         feedback.textContent = "3 Fehlversuche. Nächste Vokabel!";
-        
-        mqttClient.publish(topicToHost, JSON.stringify({
-          type: 'SUBMIT_RESULT',
-          studentId: myStudentId,
-          deWord: currentWord.de,
-          correct: false,
-          attempts: 3
-        }));
+        hostConn.send({ type: 'SUBMIT_RESULT', deWord: currentWord.de, correct: false, attempts: 3 });
 
         if (reservePool.length > 0) studentQueue.push(reservePool.shift());
         setTimeout(() => { currentIdx++; loadStudentWord(); }, 1000);
